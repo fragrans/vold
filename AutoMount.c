@@ -102,6 +102,18 @@ int CreateINotifySocket()
     return fd;
 }
 
+void fcheck(char *cc) 
+{
+  FILE *fp;
+  fp = fopen(cc, "r");
+  if( fp ) {
+    LOGE("File %s OK", cc);
+    fclose(fp);
+  } else {
+    LOGE("File %s FAIL", cc);
+    // doesnt exist                                                                                                                                        
+  }
+}
 
 static void* AutoMountThread(void* arg)
 {
@@ -149,7 +161,9 @@ static void* AutoMountThread(void* arg)
                     char ccMountPoint[128];
                     sprintf(ccDevice, "/dev/block/%s",event->name);
                     sprintf(ccMountPoint, "/sdcard/%s",event->name);
-                    mkdir(ccMountPoint, 0777);
+                    if( mkdir(ccMountPoint, 0777) ) {
+		      LOGE("Hi, Why cann't I create this folder?");
+		    }
                     
                     char *fs[] = {"ext3", "ext2", "vfat", NULL};
                     char **f;
@@ -162,6 +176,10 @@ static void* AutoMountThread(void* arg)
                         strcpy(cc, ccMountPoint);
                         cc[strlen(cc)-1] = '\0';
                         LOGE("I will umount [%s] first", cc);
+			fcheck(ccMountPoint);
+			fcheck(ccDevice);
+			fcheck(cc);
+     
                         if(umount(cc)) {
                           LOGE("Hi, this is a fatal bug");
                         }
